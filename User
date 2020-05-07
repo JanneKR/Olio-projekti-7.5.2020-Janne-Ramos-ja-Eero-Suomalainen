@@ -1,0 +1,56 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+
+public class User {
+    private String name;
+	private String eMail;
+	private String phoneNumber;
+	private String password;
+	private String currentHall;
+	private boolean adminStatus;
+
+	public User(String n, String e, String pn, String pw, String ch, boolean as) {
+		name = n;
+		eMail = e;
+		phoneNumber = pn;
+		password = pw;
+		currentHall = ch;
+		adminStatus = as;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getEMail() {
+		return eMail;
+	}
+
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getCurrentHall() {
+		return currentHall;
+	}
+
+	public boolean getAdminStatus() {
+		return adminStatus;
+	}
+
+	public void editUserInformation(String pw, String e, String pn, String ch) {
+		password = pw;
+		eMail = e;
+		phoneNumber = pn;
+		currentHall = ch;
+	}
+}
