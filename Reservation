@@ -1,0 +1,70 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Reservation {
+    private String hallName;
+    private String date;
+	private String time;
+	private String sport;
+	private String user;
+
+	SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH");
+
+	public Reservation(String hn, String d, String t, String u, String s) {
+	    hallName = hn;
+		date = d;
+		time = t;
+		user = u;
+		sport = s;
+	}
+
+	public String getDate() {
+		return date;
+	}
+
+	public  String getTime() {
+		return time;
+	}
+
+	public String getHallName() {
+		return hallName;
+	}
+
+	public String getUserName() {
+		return user;
+	}
+
+	public  String getSport() {
+		return sport;
+	}
+
+	public String getInformation() {
+	    return ". Hall: "+hallName+"\n    "+date+" "+time+"\n    Sport: "+sport+"\n\n";
+    }
+
+    public void editInformation(String d, String t, String s) {
+		date = d;
+		time = t;
+		sport = s;
+	}
+
+    public int getEpochTime() {
+		String[] startTime = time.split("\\.");
+		Date epochDate = null;
+		try {
+			epochDate = sdf.parse(date+" "+startTime[0]);
+		} catch (ParseException e) {
+
+		}
+		long epoch = epochDate.getTime();
+		return (int) (epoch/1000);
+	}
+}
