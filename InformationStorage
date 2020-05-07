@@ -1,0 +1,131 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import java.util.ArrayList;
+
+public class InformationStorage {
+
+    private static InformationStorage is = new InformationStorage();
+    public InformationStorage() {
+
+    }
+    public static InformationStorage getInstance() {
+        return is;
+    }
+
+    private int userListIndex, hallAmount = 0;
+    private String currentDate;
+
+    private ArrayList<MultiPurposeHall> hallList = new ArrayList<>();
+    private ArrayList<User> userList = new ArrayList<>();
+    private ArrayList<Reservation> reservationList = new ArrayList<>();
+
+    public void  setCurrentDate(String d) {
+        currentDate = d;
+    }
+    public  String getCurrentDate() {
+        return currentDate;
+    }
+
+    public ArrayList<MultiPurposeHall> getHallList() {
+        return  hallList;
+    }
+
+    public ArrayList<User> getUserList() {
+        return userList;
+    }
+
+    public ArrayList<Reservation> getReservationList() {
+        return  reservationList;
+    }
+
+    public  void createHall(String hn)  {
+        if (hallAmount < 3) {
+            MultiPurposeHall hall = new MultiPurposeHall(hn);
+            hallList.add(hall);
+        }
+        hallAmount += 1;
+    }
+
+    public void createUser(String n, String e, String pn, String pw, String ch, boolean as) {
+        String name = n;
+        String eMail = e;
+        String phoneNumber = pn;
+        String password = pw;
+        String currentHall = ch;
+        boolean adminStatus = as;
+        User user = new User(name, eMail, phoneNumber, password, currentHall, adminStatus);
+        userList.add(user);
+    }
+
+    public String findUserName(String e, String pw) {
+        userListIndex = 0;
+        String username = null;
+        for (User user : userList) {
+            if (user.getEMail().matches(e)) {
+                if (user.getPassword().matches(pw)) {
+                    username = user.getName();
+                    break;
+                }
+            }
+            userListIndex += 1;
+        }
+        return username;
+    }
+
+    public User getCurrentUser() {
+        return userList.get(userListIndex);
+    }
+
+    public MultiPurposeHall getUsersHall() {
+        MultiPurposeHall hall = null;
+        for (MultiPurposeHall mph : hallList) {
+            if (mph.getHallName().matches(getCurrentUser().getCurrentHall())) {
+                hall = mph;
+            }
+        }
+        return hall;
+    }
+
+    public void createReservation(String time, String sport) {
+        String username = userList.get(userListIndex).getName();
+        Reservation reservation = new Reservation(getCurrentUser().getCurrentHall(), currentDate, time, username, sport);
+        reservationList.add(reservation);
+    }
+
+    // Finds i. reservation of current user
+    public Reservation getReservation(int i) {
+        Reservation res = null;
+        String username = userList.get(userListIndex).getName();
+        for (Reservation r : reservationList) {
+            if (r.getUserName().matches(username)) {
+                i -= 1;
+                if (i == 0) {
+                    res = r;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
+    // Removes i. reservation of current user
+    public void removeReservation(int i) {
+        int index = 0;
+        String username = userList.get(userListIndex).getName();
+        for (Reservation r : reservationList) {
+            if (r.getUserName().matches(username)) {
+                i -= 1;
+                if (i == 0) {
+                    reservationList.remove(index);
+                    break;
+                }
+            }
+            index += 1;
+        }
+    }
+}
