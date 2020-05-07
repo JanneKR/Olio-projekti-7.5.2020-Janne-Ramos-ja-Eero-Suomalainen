@@ -80,7 +80,7 @@ public class MyReservationsFragment extends Fragment implements View.OnClickList
                 break;
         }
     }
-
+    //edits or removes reservation based on command
     private void editRemoveOption(String command) {
         if (resSystem.getNOUR() == 0) {
             Toast.makeText(getActivity().getApplicationContext(), "You don't have reservations!", Toast.LENGTH_SHORT).show();
