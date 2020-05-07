@@ -1,0 +1,112 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import java.util.ArrayList;
+
+
+public class ProfileFragment extends Fragment implements View.OnClickListener {
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+
+    EditText eMail, phoneNumber, passWord;
+    Spinner hallSpinner;
+    Button button;
+
+    private String newHall;
+    private ArrayList<String> hallNameList = new ArrayList<>();
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_profile, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        eMail = (EditText)getView().findViewById(R.id.profileEmail);
+        phoneNumber = (EditText)getView().findViewById(R.id.profilePhoneNumber);
+        passWord = (EditText)getView().findViewById(R.id.profilePassword);
+        hallSpinner = (Spinner)getView().findViewById(R.id.profileSpinner);
+        button = (Button) getView().findViewById(R.id.profileChange);
+        button.setOnClickListener(this);
+
+
+        if (resSystem.getLogInStatus()) {
+            eMail.setHint("Email: "+resSystem.inSto.getCurrentUser().getEMail());
+            phoneNumber.setHint("Phone number: "+resSystem.inSto.getCurrentUser().getPhoneNumber());
+            passWord.setHint("Password: "+resSystem.inSto.getCurrentUser().getPassword());
+        }
+
+        for (MultiPurposeHall mph : resSystem.getInSto().getHallList()) {
+            hallNameList.add(mph.getHallName());
+        }
+
+        ArrayAdapter<String> hallAdapter = new ArrayAdapter<>(this.getActivity(), android.R.layout.simple_spinner_item, hallNameList);
+        hallAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        hallSpinner.setAdapter(hallAdapter);
+
+        hallSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                newHall = parent.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    public void editInfo() {
+        int i = 0;
+        String oldHall = resSystem.getInSto().getCurrentUser().getCurrentHall();
+        String newPassWord = passWord.getText().toString();
+        String newNumber = phoneNumber.getText().toString();
+        String newEmail = eMail.getText().toString();
+        if (oldHall.matches(newHall)) {
+            resSystem.inSto.getCurrentUser().editUserInformation(newPassWord, newEmail, newNumber, newHall);
+            resSystem.xmlWriter.writeFile(resSystem.getInSto().getUserList());
+        } else {
+            for(Reservation r : resSystem.getInSto().getReservationList()) {
+                if (r.getUserName().matches(resSystem.getInSto().getCurrentUser().getName())) {
+                    resSystem.getInSto().getReservationList().remove(i);
+                }
+                i += 1;
+            }
+            resSystem.inSto.getCurrentUser().editUserInformation(newPassWord, newEmail, newNumber, newHall);
+            resSystem.xmlWriter.writeFile(resSystem.getInSto().getUserList());
+        }
+        getFragmentManager().beginTransaction().replace(R.id.fragment_layout, new HomeFragment()).commit();
+        Toast.makeText(getActivity().getApplicationContext(), "Information edited", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()) {
+            case R.id.profileChange:
+                editInfo();
+        }
+    }
+}
