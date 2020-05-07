@@ -1,0 +1,210 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import android.app.DatePickerDialog.OnDateSetListener;
+import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+public class CreateReservationFragment extends Fragment implements View.OnClickListener{
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+
+    private String date, bookedHour, sport, hall;
+
+    ArrayList<String> freeHourList = new ArrayList<>();
+    ArrayList<String> sportList = resSystem.inSto.getUsersHall().getListOfSports();
+
+    Button dateButton, createButton, addSport;
+    TextView TW;
+    Spinner hourSpinner, sportSpinner;
+    EditText sportText, weeks;
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_create_reservation, container, false);
+    }
+
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        freeHourList.clear();
+        date = resSystem.inSto.getCurrentDate();
+
+        for (int x = 9; x<21; x++) {
+            boolean found = false;
+            hall = resSystem.getInSto().getCurrentUser().getCurrentHall();
+            String hour = x+".00-"+(x+1)+".00";
+            for (Reservation r : resSystem.inSto.getReservationList()) {
+                if (r.getDate().matches(date) && r.getTime().matches(hour) && r.getHallName().matches(hall)) {
+                    found = true;
+                    continue;
+                }
+            }
+            if (found) {
+
+            } else {
+                freeHourList.add(x+".00-"+(x+1)+".00");
+            }
+        }
+
+        TW = (TextView)getView().findViewById(R.id.reservationDateString);
+        TW.setText(resSystem.inSto.getCurrentDate());
+
+        weeks = (EditText)getView().findViewById(R.id.reservationRepeatingWeeks);
+
+        dateButton = (Button)getView().findViewById(R.id.reservationDate);
+        dateButton.setOnClickListener(this);
+
+        createButton = (Button)getView().findViewById(R.id.reservationCreateButton);
+        createButton.setOnClickListener(this);
+        if (resSystem.getFlag() > -1) {
+            createButton.setText("edit reservation");
+        }
+
+        addSport = (Button)getView().findViewById(R.id.addSportbutton);
+        addSport.setOnClickListener(this);
+
+        sportText = (EditText)getView().findViewById(R.id.addSportText);
+
+        hourSpinner = (Spinner)getView().findViewById(R.id.reservationTimeSpinner);
+        sportSpinner = (Spinner)getView().findViewById(R.id.reservationSportSpinner);
+
+        ArrayAdapter<String> hourAdapter = new ArrayAdapter<>(this.getActivity(), android.R.layout.simple_spinner_item, freeHourList);
+        hourAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        hourSpinner.setAdapter(hourAdapter);
+
+        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this.getActivity(), android.R.layout.simple_spinner_item, sportList);
+        sportAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sportSpinner.setAdapter(sportAdapter);
+
+        spinnerListener(hourSpinner);
+        spinnerListener(sportSpinner);
+    }
+
+    //Listener for spinner is in its own method so it can be used for different spinners
+    private void spinnerListener(final Spinner s) {
+        s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                setSpinnerItem(parent.getItemAtPosition(position).toString(), s);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
+
+    //A method for setting sellected spinner item to the right string
+    private void setSpinnerItem(String st, Spinner s) {
+        if (s == hourSpinner) {
+            bookedHour = st;
+        } else if (s == sportSpinner) {
+            sport = st;
+        }
+    }
+
+    //A method to form a date picker
+    private void showDatePicker() {
+        DatePickerFragment dpf = new DatePickerFragment();
+
+        Calendar c = Calendar.getInstance();
+        Bundle args = new Bundle();
+        args.putInt("year", c.get(Calendar.YEAR));
+        args.putInt("month", c.get(Calendar.MONTH));
+        args.putInt("day", c.get(Calendar.DAY_OF_MONTH));
+        dpf.setArguments(args);
+
+        dpf.setCallBack(ondate);
+        dpf.show(getFragmentManager(), "Date Picker");
+    }
+
+    OnDateSetListener ondate = new OnDateSetListener() {
+
+        public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+            resSystem.inSto.setCurrentDate((dayOfMonth) + "." + (month+1) + "." + (year));
+            getFragmentManager().beginTransaction().detach(CreateReservationFragment.this).attach(CreateReservationFragment.this).commit();
+        }
+    };
+
+    @Override
+    public void onClick(View v) {
+        String date;
+        switch (v.getId()) {
+            case R.id.reservationDate:
+                showDatePicker();
+                break;
+
+            case R.id.reservationCreateButton:
+                date = TW.getText().toString();
+                if (date.isEmpty()) {
+                    Toast.makeText(getActivity().getApplicationContext(), "Choose a day", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (resSystem.getFlag() > -1) {
+                        resSystem.inSto.getReservation(resSystem.getFlag()).editInformation(date, bookedHour, sport);
+                        resSystem.setFlag(-1);
+                    } else {
+                        resSystem.inSto.createReservation(bookedHour, sport);
+                        int w = Integer.parseInt(weeks.getText().toString());
+                        if (w > 0) {
+                            createReservationFromEpoch(w);
+                        }
+                    }
+                    getFragmentManager().beginTransaction().replace(R.id.fragment_layout, new MyReservationsFragment()).commit();
+                }
+                break;
+            case R.id.addSportbutton:
+                addSport();
+                break;
+        }
+    }
+
+    private void addSport() {
+        String sport = sportText.getText().toString();
+        if (sport.isEmpty()) {
+            Toast.makeText(getActivity().getApplicationContext(), "Type a sport please.", Toast.LENGTH_SHORT).show();
+        } else {
+            resSystem.getInSto().getUsersHall().getListOfSports().add(sport);
+            sportText.setText("");
+            getFragmentManager().beginTransaction().detach(CreateReservationFragment.this).attach(CreateReservationFragment.this).commit();
+        }
+    }
+
+    // Used to create repeating reservations
+    private void createReservationFromEpoch(int numberOfWeeks) {
+        int index = resSystem.inSto.getReservationList().size() - 1;
+        int epoch = resSystem.inSto.getReservationList().get(index).getEpochTime();
+        Date date;
+        SimpleDateFormat sdf = new SimpleDateFormat("d.M.yyyy HH");
+        String currentDate = resSystem.inSto.getCurrentDate();
+        for (int x = 1; x < numberOfWeeks + 1; x++) {
+            date = new Date((long) (epoch + (x * (7 * 24 * 3600)))*1000);
+            String[] dateSplit = sdf.format(date).split(" ");
+            resSystem.inSto.setCurrentDate(dateSplit[0]);
+            int time = Integer.parseInt(dateSplit[1]);
+            resSystem.inSto.createReservation(time+".00-"+(time+1)+".00", sport);
+            resSystem.inSto.setCurrentDate(currentDate);
+        }
+    }
+}
