@@ -1,0 +1,99 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.widget.TextView;
+
+import java.util.ArrayList;
+
+public class ReservationSystem {
+
+    private static ReservationSystem rs = new ReservationSystem();
+    public ReservationSystem() {
+
+    }
+    public static ReservationSystem getInstance() {
+        return rs;
+    }
+
+    InformationStorage inSto = InformationStorage.getInstance();
+    XML_writer xmlWriter = XML_writer.getInstance();
+
+    private boolean logInStatus = false;
+    private int userListIndex, flag = -1, adminAmount = 0;
+    private String currentUser, date = "";
+
+    public InformationStorage getInSto() {
+        return inSto;
+    }
+
+    public void setFlag(int f) {
+        flag = f;
+    }
+
+    public int getFlag() {
+        return flag;
+    }
+
+    public void createAdmin() {
+        if (adminAmount < 1) {
+            inSto.createUser("Admin", "@@@", "12345", "69", "Eureka", true);
+            adminAmount += 1;
+        }
+    }
+
+    public void userLogIn(String e, String pa) {
+        currentUser = inSto.findUserName(e, pa);
+        if (currentUser != null) {
+            logInStatus = true;
+        }
+    }
+
+    public void setLogInStatus(boolean b) {
+        logInStatus = b;
+    }
+
+    public boolean getLogInStatus() {
+        return logInStatus;
+    }
+
+    public void printUserReservations(TextView reservationsField, String s) {
+        String username = inSto.getCurrentUser().getName();
+        int x = 1;
+        if (s.matches("user")) {
+            for (Reservation r : inSto.getReservationList()) {
+                if (r.getUserName().matches(username)) {
+                    reservationsField.append(x+r.getInformation());
+                    x += 1;
+                }
+            }
+        } else {
+            for (Reservation r : inSto.getReservationList()) {
+                if (r.getSport().matches(s)) {
+                    reservationsField.append(x+r.getInformation());
+                    x += 1;
+                }
+            }
+        }
+    }
+
+    public void removeUser(int i){
+        User user = inSto.getUserList().get(i);
+        inSto.getUserList().remove(user);
+    }
+
+    //Returns number of user's reservations
+    public int getNOUR() {
+        String username = inSto.getCurrentUser().getName();
+        int n = 0;
+        for (Reservation r : inSto.getReservationList()) {
+            if (r.getUserName().matches(username)) {
+                n += 1;
+            }
+        }
+        return n;
+    }
+}
