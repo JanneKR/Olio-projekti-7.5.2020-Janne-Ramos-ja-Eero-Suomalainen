@@ -1,0 +1,135 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.app.DatePickerDialog;
+import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+
+public class HallFragment extends Fragment implements View.OnClickListener {
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+
+    TextView TW;
+    Button dateButton;
+    Spinner sportSpinner;
+
+    private ArrayList<String> sportList = resSystem.getInSto().getUsersHall().getListOfSports();
+    private String sport;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_hall, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        TW = (TextView)getView().findViewById(R.id.hallOpenHours);
+        TW.setMovementMethod(new ScrollingMovementMethod());
+
+        dateButton = (Button)getView().findViewById(R.id.hallDateButton);
+        dateButton.setOnClickListener(this);
+        sportSpinner = (Spinner)getView().findViewById(R.id.hallSpinner);
+
+        ArrayAdapter<String> sportAdapter = new ArrayAdapter<>(this.getActivity(), android.R.layout.simple_spinner_item, sportList);
+        sportAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sportSpinner.setAdapter(sportAdapter);
+
+        sportSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                sport = parent.getItemAtPosition(position).toString();
+                TW.setText("");
+                findBySport();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    //A method to form a date picker
+    private void showDatePicker() {
+        DatePickerFragment dpf = new DatePickerFragment();
+
+        Calendar c = Calendar.getInstance();
+        Bundle args = new Bundle();
+        args.putInt("year", c.get(Calendar.YEAR));
+        args.putInt("month", c.get(Calendar.MONTH));
+        args.putInt("day", c.get(Calendar.DAY_OF_MONTH));
+        dpf.setArguments(args);
+
+        dpf.setCallBack(ondate);
+        dpf.show(getFragmentManager(), "Date Picker");
+    }
+
+    DatePickerDialog.OnDateSetListener ondate = new DatePickerDialog.OnDateSetListener() {
+
+        public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+            String date = (dayOfMonth) + "." + (month+1)+ "." + (year);
+            TW.setText("");
+            findHours(date);
+        }
+    };
+
+    // Prints free and reserved hours of current day
+    private void findHours(String d) {
+        boolean found = false;
+        String hall = resSystem.getInSto().getCurrentUser().getCurrentHall();
+        for (int x = 9; x<21; x++) {
+            String hour = x + ".00-" + (x + 1) + ".00";
+            for (Reservation r : resSystem.inSto.getReservationList()) {
+                if (r.getDate().matches(d) && r.getTime().matches(hour) && r.getHallName().matches(hall)) {
+                    found = true;
+                    continue;
+                }
+            }
+            if (found) {
+                TW.append(hour+" (Reserved)\n");
+                found = false;
+            } else {
+                TW.append(hour+"\n");
+            }
+        }
+    }
+
+    // Prints reserved hours by sport
+    public void findBySport() {
+        resSystem.printUserReservations(TW, sport);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.hallDateButton:
+                showDatePicker();
+                break;
+        }
+    }
+}
