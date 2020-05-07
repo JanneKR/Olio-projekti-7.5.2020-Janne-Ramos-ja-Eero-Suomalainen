@@ -48,7 +48,7 @@ public class CreateReservationFragment extends Fragment implements View.OnClickL
         super.onViewCreated(view, savedInstanceState);
         freeHourList.clear();
         date = resSystem.inSto.getCurrentDate();
-
+        //prints only times available
         for (int x = 9; x<21; x++) {
             boolean found = false;
             hall = resSystem.getInSto().getCurrentUser().getCurrentHall();
