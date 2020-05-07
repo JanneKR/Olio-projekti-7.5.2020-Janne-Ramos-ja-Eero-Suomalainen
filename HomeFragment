@@ -1,0 +1,87 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+public class HomeFragment extends Fragment implements View.OnClickListener {
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+
+    Button buttonDelete;
+    EditText editText;
+    TextView textView, TW;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_home, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        TW = (TextView)getView().findViewById(R.id.homeText);
+
+        if (resSystem.getLogInStatus()) {
+            TW.setText("Welcome "+resSystem.getInSto().getCurrentUser().getName()
+                    +"\nYour current hall is "+resSystem.getInSto().getUsersHall().getHallName()
+                    +". If you want you can change it in profile page.");
+        } else {
+            TW.setText("Welcome to use Multi Purpose Hall-reservation system. Please register or log in first.");
+        }
+
+
+        buttonDelete = (Button) getView().findViewById(R.id.buttonDelete);
+        buttonDelete.setOnClickListener(this);
+
+        editText = (EditText) getView().findViewById(R.id.textView7);
+
+        textView = (TextView) getView().findViewById(R.id.textView);
+
+        if (resSystem.getInSto().getCurrentUser().getAdminStatus() && resSystem.getLogInStatus()){
+            int b = 0;
+        } else {
+            buttonDelete.setVisibility(View.GONE);
+            editText.setVisibility(View.GONE);
+            textView.setVisibility(View.GONE);
+        }
+    }
+
+    private void removaUser() {
+
+        if (editText.getText().toString().equals("")) {
+            Toast.makeText(getActivity().getApplicationContext(), "No number given!", Toast.LENGTH_SHORT).show();
+
+        } else if (Integer.parseInt(editText.getText().toString()) > InformationStorage.getInstance().getUserList().size()) {
+            Toast.makeText(getActivity().getApplicationContext(), "Number over list size!", Toast.LENGTH_SHORT).show();
+
+        } else {
+            int i = Integer.parseInt(editText.getText().toString());
+            resSystem.removeUser(i);
+            resSystem.xmlWriter.writeFile(InformationStorage.getInstance().getUserList());
+        }
+    }
+
+    public void onClick (View v){
+        switch (v.getId()) {
+            case R.id.buttonDelete:
+                removaUser();
+                break;
+        }
+    }
+}
