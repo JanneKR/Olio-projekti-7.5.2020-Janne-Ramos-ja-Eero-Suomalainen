@@ -1,0 +1,77 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+public class LogInFragment extends Fragment implements View.OnClickListener{
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+    TextView TW;
+    EditText name, number, email, password, rePassword;
+    Spinner hallSpinner;
+    Button button;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_register, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        name = (EditText) getView().findViewById(R.id.textView2);
+        name.setVisibility(View.INVISIBLE);
+        number = (EditText) getView().findViewById(R.id.textView3);
+        number.setVisibility(View.INVISIBLE);
+
+        email = (EditText) getView().findViewById(R.id.textView4);
+        password = (EditText)getView().findViewById(R.id.textView5);
+
+        TW = (TextView)getView().findViewById(R.id.registerTW);
+        TW.setVisibility(View.INVISIBLE);
+        hallSpinner = (Spinner)getView().findViewById(R.id.registerSpinner);
+        hallSpinner.setVisibility(View.INVISIBLE);
+        rePassword = (EditText)getView().findViewById(R.id.textView6);
+        rePassword.setVisibility(View.INVISIBLE);
+        button = (Button) getView().findViewById(R.id.addUserButton);
+        button.setText("Log in");
+        button.setOnClickListener(this);
+    }
+
+    public void logIn() {
+        String useremail = email.getText().toString();
+        String userPassword = password.getText().toString();
+        resSystem.userLogIn(useremail, userPassword);
+        if (resSystem.getLogInStatus()) {
+            getActivity().recreate();
+        }
+        else {
+            Toast.makeText(getActivity().getApplicationContext(), "Log in failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()) {
+            case R.id.addUserButton:
+                logIn();
+        }
+    }
+}
