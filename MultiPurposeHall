@@ -1,0 +1,31 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import java.util.ArrayList;
+
+public class MultiPurposeHall {
+
+    private String hallName ;
+
+    private ArrayList<String> listOfSports = new ArrayList<>();
+
+    public MultiPurposeHall(String hn) {
+        hallName = hn;
+        listOfSports.add("Basketball");
+        listOfSports.add("Bandmington");
+        listOfSports.add("Volleyball");
+        listOfSports.add("Dodgeball");
+    }
+
+	public ArrayList<String> getListOfSports(){
+		return listOfSports;
+	}
+
+    public String getHallName() {
+        return hallName;
+    }
+}
