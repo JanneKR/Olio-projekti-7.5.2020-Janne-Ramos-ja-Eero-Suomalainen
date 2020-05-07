@@ -59,7 +59,7 @@ public class ReservationSystem {
     public boolean getLogInStatus() {
         return logInStatus;
     }
-
+    //prints user's reservations onto textview
     public void printUserReservations(TextView reservationsField, String s) {
         String username = inSto.getCurrentUser().getName();
         int x = 1;
