@@ -116,7 +116,7 @@ public class CreateReservationFragment extends Fragment implements View.OnClickL
 
     }
 
-    //A method for setting sellected spinner item to the right string
+    //A method for setting selected spinner item to the right string
     private void setSpinnerItem(String st, Spinner s) {
         if (s == hourSpinner) {
             bookedHour = st;
@@ -191,7 +191,7 @@ public class CreateReservationFragment extends Fragment implements View.OnClickL
         }
     }
 
-    // Used to create repeating reservations
+    // Used to create repeating reservations, with input being the number of weeks
     private void createReservationFromEpoch(int numberOfWeeks) {
         int index = resSystem.inSto.getReservationList().size() - 1;
         int epoch = resSystem.inSto.getReservationList().get(index).getEpochTime();
