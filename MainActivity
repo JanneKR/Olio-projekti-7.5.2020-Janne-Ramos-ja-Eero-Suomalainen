@@ -1,0 +1,130 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.widget.Button;
+import android.view.View;
+import android.widget.Toast;
+
+import com.google.android.material.navigation.NavigationView;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    ReservationSystem resSystem = ReservationSystem.getInstance();
+
+    private DrawerLayout drawer;
+    private Button logInButton;
+    private Button RButton;
+    Context context;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Toolbar tb = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(tb);
+
+        context = MainActivity.this;
+        resSystem.xmlWriter.importContext(context);
+
+        logInButton = (Button)findViewById(R.id.logIn);
+        RButton = (Button)findViewById(R.id.registerButton);
+
+        drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        NavigationView navView = (NavigationView)findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(this);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, tb, R.string.open, R.string.close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new HomeFragment()).commit();
+
+        resSystem.getInSto().createHall("Eureka");
+        resSystem.getInSto().createHall("Brittle");
+        resSystem.getInSto().createHall("Timber");
+
+        resSystem.createAdmin();
+        resSystem.xmlWriter.writeFile(resSystem.getInSto().getUserList());
+        System.out.println(context.getFilesDir());
+
+        if (resSystem.getLogInStatus()) {
+            logInButton.setText("log out");
+        } else {
+            logInButton.setText("log in");
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_home:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new HomeFragment()).commit();
+                break;
+
+            case R.id.menu_profile:
+                if (resSystem.getLogInStatus()) {
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new ProfileFragment()).commit();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Log in first", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.menu_reservations:
+                if (resSystem.getLogInStatus()) {
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new MyReservationsFragment()).commit();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Log in first", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.menu_hall:
+                if (resSystem.getLogInStatus()) {
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new HallFragment()).commit();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Log in first", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public  void logInClicked(View v) {
+        if (resSystem.getLogInStatus()) {
+            resSystem.setLogInStatus(false);
+            recreate();
+        }
+        else {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new LogInFragment()).commit();
+        }
+
+    }
+
+    public void registerClicked(View v) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_layout, new RegisterFragment()).commit();
+    }
+}
