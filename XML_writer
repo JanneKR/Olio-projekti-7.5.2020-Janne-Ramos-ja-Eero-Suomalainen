@@ -1,0 +1,84 @@
+/*************************************************
+ * Olio-ohjelmoinnin projekti, Monitoimihallin varausjärjestelmä
+ * Tekijät ja opiskelijanumerot: Janne Ramos (0566796) ja Eero Suomalainen (0565289)
+ **************************************************/
+
+package com.example.olio_projekti;
+
+import android.content.Context;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import java.io.File;
+import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+public class XML_writer {
+
+    private Context context = null;
+
+    private static XML_writer xml_writer = new XML_writer();
+    public XML_writer() {
+    }
+    public static XML_writer getInstance() {
+        return xml_writer;
+    }
+
+    public void importContext(Context c){
+        context = c;
+    }
+
+    public void writeFile(ArrayList<User> list) {
+
+        File file = new File(context.getFilesDir().getPath(), "file.xml");
+        System.out.println(list.size());
+
+        try {
+            DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
+            Document document = documentBuilder.newDocument();
+            Element root = document.createElement("Userlist");
+            document.appendChild(root);
+
+            for (int i = 0; i < list.size(); i++) {
+                Element userindex = document.createElement("User");
+                root.appendChild(userindex);
+                Element username = document.createElement("username");
+                username.appendChild(document.createTextNode(list.get(i).getName()));
+                userindex.appendChild(username);
+                Element useremail = document.createElement("useremail");
+                useremail.appendChild(document.createTextNode(list.get(i).getEMail()));
+                userindex.appendChild(useremail);
+                Element usernumber = document.createElement("usernumber");
+                usernumber.appendChild(document.createTextNode(list.get(i).getPhoneNumber()));
+                userindex.appendChild(usernumber);
+                Element userpassword = document.createElement("userpassword");
+                userpassword.appendChild(document.createTextNode(list.get(i).getPassword()));
+                userindex.appendChild(userpassword);
+                Element currenthall = document.createElement("currenthall");
+                currenthall.appendChild(document.createTextNode(list.get(i).getCurrentHall()));
+                userindex.appendChild(currenthall);
+            }
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource domSource = new DOMSource(document);
+            StreamResult streamResult = new StreamResult(file);
+            transformer.transform(domSource, streamResult);
+            System.out.println("well exed");
+
+        } catch (ParserConfigurationException | TransformerConfigurationException pce) {
+            pce.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+    }
+}
